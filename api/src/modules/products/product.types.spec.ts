@@ -1,9 +1,9 @@
-import { money } from '@shopsense/shared';
+import { money, shopId } from '@shopsense/shared';
 import { toProductResponse, type ProductResponse, type ProductRow } from './product.types';
 
 const row: ProductRow = {
   id: 'p1',
-  shopId: 'shop1',
+  shopId: shopId('shop1'),
   categoryId: null,
   supplierId: null,
   name: 'Milo 400g',

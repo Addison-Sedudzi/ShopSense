@@ -1,4 +1,4 @@
-import type { Money } from '@shopsense/shared';
+import type { Money, ShopId } from '@shopsense/shared';
 
 export type ProductUnit = 'piece' | 'carton';
 
@@ -8,7 +8,7 @@ export type ProductUnit = 'piece' | 'carton';
  */
 export interface ProductRow {
   id: string;
-  shopId: string;
+  shopId: ShopId;
   categoryId: string | null;
   supplierId: string | null;
   name: string;

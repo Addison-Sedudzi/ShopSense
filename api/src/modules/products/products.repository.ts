@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { moneyFromPgNumeric } from '@shopsense/shared';
+import { moneyFromPgNumeric, shopId as toShopId, type ShopId } from '@shopsense/shared';
 import type { Pool } from 'pg';
 import { PG_POOL } from '../../database/database.module';
 import type { ProductRow } from './product.types';
@@ -24,7 +24,7 @@ interface ProductRowDb {
 function toProductRow(row: ProductRowDb): ProductRow {
   return {
     id: row.id,
-    shopId: row.shop_id,
+    shopId: toShopId(row.shop_id),
     categoryId: row.category_id,
     supplierId: row.supplier_id,
     name: row.name,
@@ -44,7 +44,7 @@ function toProductRow(row: ProductRowDb): ProductRow {
 export class ProductsRepository {
   constructor(@Inject(PG_POOL) private readonly pool: Pool) {}
 
-  async findByShop(shopId: string): Promise<ProductRow[]> {
+  async findByShop(shopId: ShopId): Promise<ProductRow[]> {
     const result = await this.pool.query<ProductRowDb>(
       `select id, shop_id, category_id, supplier_id, name, sku, base_unit,
               units_per_carton, cost_price, selling_price, reorder_threshold,
