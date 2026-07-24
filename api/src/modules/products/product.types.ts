@@ -18,6 +18,7 @@ export interface ProductRow {
   costPrice: Money;
   sellingPrice: Money;
   reorderThreshold: number;
+  currentStock: number;
   archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -43,6 +44,7 @@ export interface ProductResponse {
   unitsPerCarton: number | null;
   sellingPrice: Money;
   reorderThreshold: number;
+  currentStock: number;
   archived: boolean;
 }
 
@@ -57,6 +59,7 @@ export function toProductResponse(row: ProductRow): ProductResponse {
     unitsPerCarton: row.unitsPerCarton,
     sellingPrice: row.sellingPrice,
     reorderThreshold: row.reorderThreshold,
+    currentStock: row.currentStock,
     archived: row.archivedAt !== null,
   };
 }

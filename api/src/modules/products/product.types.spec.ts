@@ -13,6 +13,7 @@ const row: ProductRow = {
   costPrice: money(1200),
   sellingPrice: money(1800),
   reorderThreshold: 10,
+  currentStock: 24,
   archivedAt: null,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
