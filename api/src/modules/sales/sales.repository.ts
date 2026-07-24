@@ -1,20 +1,12 @@
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import {
-  addMoney,
-  moneyFromPgNumeric,
-  scaleMoney,
-  shopId as toShopId,
-  subtractMoney,
-  ZERO_MONEY,
-  type Money,
-  type ShopId,
-} from '@shopsense/shared';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { scaleMoney, shopId as toShopId, type Money, type ShopId } from '@shopsense/shared';
 import type { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { PG_POOL } from '../../database/database.module';
 import { moneyParam } from '../../database/money-param';
 import { withTransaction } from '../../database/transaction';
 import type { ProductUnit } from '../products/product.types';
 import { convertToBaseUnit } from '../products/unit-conversion';
+import { computeDiscount, computeSaleTotals, priceForUnit, type ResolvedDiscount } from './sale-calculations';
 import type {
   DiscountInput,
   DiscountRow,
@@ -33,46 +25,6 @@ export interface RecordSaleInput {
   idempotencyKey: string;
   items: SaleItemInput[];
   saleDiscount?: DiscountInput;
-}
-
-interface ResolvedDiscount {
-  discountType: DiscountType;
-  discountValue: number;
-  amount: Money;
-}
-
-/** Resolves a client-supplied discount against the amount it applies to, in Money,
- * never trusting a percentage or fixed amount the client sends without re-deriving
- * the actual currency figure from it here. */
-function computeDiscount(base: Money, discount: DiscountInput | undefined, label: string): ResolvedDiscount | null {
-  if (!discount) return null;
-
-  const rawValue = Number(discount.value);
-  let amount: Money;
-  if (discount.type === 'percentage') {
-    if (rawValue < 0 || rawValue > 100) {
-      throw new BadRequestException(`${label} percentage discount must be between 0 and 100`);
-    }
-    amount = scaleMoney(base, rawValue / 100);
-  } else {
-    amount = moneyFromPgNumeric(discount.value);
-  }
-
-  if (amount > base) {
-    throw new BadRequestException(`${label} discount cannot exceed the amount it applies to`);
-  }
-
-  return { discountType: discount.type, discountValue: rawValue, amount };
-}
-
-function priceForUnit(
-  unit: ProductUnit,
-  product: { unit: ProductUnit; unitsPerCarton: number | null; sellingPrice: Money },
-): Money {
-  if (unit === product.unit) return product.sellingPrice;
-  // convertToBaseUnit() validates unitsPerCarton is set and rejects the
-  // unsupported piece-from-carton combination before this is ever reached.
-  return scaleMoney(product.sellingPrice, product.unitsPerCarton as number);
 }
 
 function isUniqueViolation(err: unknown): boolean {
@@ -108,9 +60,6 @@ export class SalesRepository {
     userId: string,
     input: RecordSaleInput,
   ): Promise<SaleRow> {
-    let subtotal: Money = ZERO_MONEY;
-    let itemDiscountTotal: Money = ZERO_MONEY;
-
     interface PreparedItem {
       productId: string;
       productName: string;
@@ -171,9 +120,6 @@ export class SalesRepository {
       const lineSubtotal = scaleMoney(unitPriceSnapshot, item.quantity);
       const discount = computeDiscount(lineSubtotal, item.discount, 'Item');
 
-      subtotal = addMoney(subtotal, lineSubtotal);
-      if (discount) itemDiscountTotal = addMoney(itemDiscountTotal, discount.amount);
-
       prepared.push({
         productId: product.id,
         productName: product.name,
@@ -186,10 +132,7 @@ export class SalesRepository {
       });
     }
 
-    const preSaleDiscountTotal = subtractMoney(subtotal, itemDiscountTotal);
-    const saleDiscount = computeDiscount(preSaleDiscountTotal, input.saleDiscount, 'Sale');
-    const discountTotal = addMoney(itemDiscountTotal, saleDiscount?.amount ?? ZERO_MONEY);
-    const grandTotal = subtractMoney(preSaleDiscountTotal, saleDiscount?.amount ?? ZERO_MONEY);
+    const { subtotal, saleDiscount, discountTotal, grandTotal } = computeSaleTotals(prepared, input.saleDiscount);
 
     const saleResult = await client.query<{ id: string; created_at: string }>(
       `insert into sales (shop_id, sold_by, status, subtotal, discount_total, grand_total, idempotency_key)
