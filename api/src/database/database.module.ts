@@ -11,6 +11,13 @@ export const PG_POOL = Symbol('PG_POOL');
 // repository ever has to remember to call moneyFromPgNumeric itself.
 const NUMERIC_OID = 1700;
 
+// Postgres OID for DATE. pg's default parser converts this to a JS Date at
+// UTC midnight, which then serializes as "2026-07-24T00:00:00.000Z" instead
+// of the plain "2026-07-24" every date-typed column (business_date) is sent
+// and compared as. Left as the raw wire string instead — Postgres already
+// sends date columns as plain YYYY-MM-DD text, so no parsing is needed at all.
+const DATE_OID = 1082;
+
 @Global()
 @Module({
   providers: [
@@ -21,8 +28,11 @@ const NUMERIC_OID = 1700;
         new Pool({
           connectionString: config.getOrThrow<string>('DATABASE_URL'),
           types: {
-            getTypeParser: (oid, format) =>
-              oid === NUMERIC_OID ? moneyFromPgNumeric : types.getTypeParser(oid, format),
+            getTypeParser: (oid, format) => {
+              if (oid === NUMERIC_OID) return moneyFromPgNumeric;
+              if (oid === DATE_OID) return (value: string) => value;
+              return types.getTypeParser(oid, format);
+            },
           },
         }),
     },
