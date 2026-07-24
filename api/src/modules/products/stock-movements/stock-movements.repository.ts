@@ -2,6 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { shopId as toShopId, type Money, type ShopId } from '@shopsense/shared';
 import type { Pool } from 'pg';
 import { PG_POOL } from '../../../database/database.module';
+import { moneyParam } from '../../../database/money-param';
 import { withTransaction } from '../../../database/transaction';
 import type { ClientMovementType, StockMovementRow } from './stock-movement.types';
 
@@ -81,7 +82,7 @@ export class StockMovementsRepository {
           input.productId,
           input.movementType,
           input.quantityDelta,
-          input.unitCost,
+          moneyParam(input.unitCost),
           input.reason,
           input.recordedBy,
         ],

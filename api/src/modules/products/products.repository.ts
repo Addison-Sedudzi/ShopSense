@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { shopId as toShopId, type Money, type ShopId } from '@shopsense/shared';
 import type { Pool } from 'pg';
+import { moneyParam } from '../../database/money-param';
 import { PG_POOL } from '../../database/database.module';
 import type { ProductRow, ProductUnit } from './product.types';
 
@@ -134,8 +135,8 @@ export class ProductsRepository {
         input.sku,
         input.unit,
         input.unitsPerCarton,
-        input.costPrice,
-        input.sellingPrice,
+        moneyParam(input.costPrice),
+        moneyParam(input.sellingPrice),
         input.reorderThreshold,
       ],
     );
@@ -175,8 +176,8 @@ export class ProductsRepository {
         input.sku ?? null,
         input.unit ?? null,
         input.unitsPerCarton ?? null,
-        input.costPrice ?? null,
-        input.sellingPrice ?? null,
+        moneyParam(input.costPrice),
+        moneyParam(input.sellingPrice),
         input.reorderThreshold ?? null,
       ],
     );
