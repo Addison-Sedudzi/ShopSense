@@ -7,6 +7,7 @@ import { DatabaseModule } from './database/database.module';
 import { IntelligenceModule } from './modules/intelligence/intelligence.module';
 import { ProductsModule } from './modules/products/products.module';
 import { ReconciliationsModule } from './modules/reconciliations/reconciliations.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { SalesModule } from './modules/sales/sales.module';
 
 @Module({
@@ -18,6 +19,7 @@ import { SalesModule } from './modules/sales/sales.module';
     SalesModule,
     ReconciliationsModule,
     IntelligenceModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
