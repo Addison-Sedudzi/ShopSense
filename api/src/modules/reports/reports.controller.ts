@@ -1,4 +1,5 @@
 import { BadRequestException, Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { moneyToPgNumeric, type ApiResponse, type Money } from '@shopsense/shared';
 import type { Response } from 'express';
 import { AuthGuard, type AuthenticatedUser } from '../../auth/auth.guard';
@@ -23,6 +24,14 @@ function assertValidRange(from: string, to: string): void {
   }
 }
 
+// Every endpoint here uses @Res() directly (to support ?format=csv alongside
+// JSON), which means Swagger can't auto-infer the success response body the
+// way it does for handlers that just `return`. The request shape (DTOs) and
+// auth/error responses are still fully documented; the 200 body isn't.
+@ApiTags('reports')
+@ApiBearerAuth('access-token')
+@ApiUnauthorizedResponse({ description: 'Missing, invalid, or expired Bearer token' })
+@ApiBadRequestResponse({ description: 'from is after to, or a query param failed validation' })
 @Controller('reports')
 @UseGuards(AuthGuard)
 export class ReportsController {

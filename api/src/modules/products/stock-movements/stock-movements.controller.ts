@@ -9,6 +9,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiNotFoundResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { moneyFromPgNumeric, type ApiResponse } from '@shopsense/shared';
 import { AuthGuard, type AuthenticatedUser } from '../../../auth/auth.guard';
 import { CurrentUser } from '../../../auth/current-user.decorator';
@@ -19,6 +20,9 @@ import { ReceiveStockDto } from './dto/receive-stock.dto';
 import { StockMovementsRepository } from './stock-movements.repository';
 import type { StockMovementRow } from './stock-movement.types';
 
+@ApiTags('stock-movements')
+@ApiBearerAuth('access-token')
+@ApiUnauthorizedResponse({ description: 'Missing, invalid, or expired Bearer token' })
 @Controller('products/:productId/stock-movements')
 @UseGuards(AuthGuard)
 export class StockMovementsController {
@@ -36,6 +40,7 @@ export class StockMovementsController {
     return { success: true, data: rows };
   }
 
+  @ApiNotFoundResponse({ description: 'No product with this id in your shop' })
   @Post('receive')
   async receive(
     @CurrentUser() user: AuthenticatedUser,

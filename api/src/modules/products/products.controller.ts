@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { moneyFromPgNumeric, type ApiResponse } from '@shopsense/shared';
+import { ApiBearerAuth, ApiNotFoundResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AuthGuard, type AuthenticatedUser } from '../../auth/auth.guard';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -18,6 +19,9 @@ import { toProductResponse, type ProductResponse } from './product.types';
 import type { CreateProductInput, UpdateProductInput } from './products.repository';
 import { ProductsRepository } from './products.repository';
 
+@ApiTags('products')
+@ApiBearerAuth('access-token')
+@ApiUnauthorizedResponse({ description: 'Missing, invalid, or expired Bearer token' })
 @Controller('products')
 @UseGuards(AuthGuard)
 export class ProductsController {
@@ -49,6 +53,7 @@ export class ProductsController {
     return { success: true, data: toProductResponse(row) };
   }
 
+  @ApiNotFoundResponse({ description: 'No product with this id in your shop' })
   @Patch(':id')
   async update(
     @CurrentUser() user: AuthenticatedUser,
@@ -75,6 +80,7 @@ export class ProductsController {
     return { success: true, data: toProductResponse(row) };
   }
 
+  @ApiNotFoundResponse({ description: 'No product with this id in your shop, or already archived' })
   @Post(':id/archive')
   async archive(
     @CurrentUser() user: AuthenticatedUser,

@@ -1,4 +1,5 @@
 import { Controller, Get, Body, NotFoundException, Param, Post, Query, UseGuards, BadRequestException } from '@nestjs/common';
+import { ApiBearerAuth, ApiConflictResponse, ApiNotFoundResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { moneyFromPgNumeric, type ApiResponse } from '@shopsense/shared';
 import { AuthGuard, type AuthenticatedUser } from '../../auth/auth.guard';
 import { CurrentUser } from '../../auth/current-user.decorator';
@@ -8,6 +9,9 @@ import { ReconciliationsRepository } from './reconciliations.repository';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+@ApiTags('reconciliations')
+@ApiBearerAuth('access-token')
+@ApiUnauthorizedResponse({ description: 'Missing, invalid, or expired Bearer token' })
 @Controller('reconciliations')
 @UseGuards(AuthGuard)
 export class ReconciliationsController {
@@ -31,6 +35,7 @@ export class ReconciliationsController {
     return { success: true, data: rows };
   }
 
+  @ApiNotFoundResponse({ description: 'No reconciliation submitted for this date' })
   @Get(':date')
   async findByDate(
     @CurrentUser() user: AuthenticatedUser,
@@ -46,6 +51,7 @@ export class ReconciliationsController {
     return { success: true, data: row };
   }
 
+  @ApiConflictResponse({ description: 'A reconciliation was already submitted for this date and cannot be resubmitted' })
   @Post()
   async submit(
     @CurrentUser() user: AuthenticatedUser,

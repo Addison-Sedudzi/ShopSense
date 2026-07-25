@@ -1,4 +1,5 @@
 import { BadRequestException, Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import type { ApiResponse } from '@shopsense/shared';
 import { AuthGuard, type AuthenticatedUser } from '../../auth/auth.guard';
 import { CurrentUser } from '../../auth/current-user.decorator';
@@ -9,6 +10,9 @@ import { RestockRecommendationsRepository } from './restock/restock.repository';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+@ApiTags('intelligence')
+@ApiBearerAuth('access-token')
+@ApiUnauthorizedResponse({ description: 'Missing, invalid, or expired Bearer token' })
 @Controller('intelligence')
 @UseGuards(AuthGuard)
 export class IntelligenceController {
@@ -25,6 +29,7 @@ export class IntelligenceController {
     return { success: true, data };
   }
 
+  @ApiBadRequestResponse({ description: 'date query param is missing or not an ISO date' })
   @Get('daily-briefing')
   async dailyBriefing(
     @CurrentUser() user: AuthenticatedUser,
