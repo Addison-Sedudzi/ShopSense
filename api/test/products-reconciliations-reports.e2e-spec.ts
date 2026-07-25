@@ -56,8 +56,9 @@ describe('Products, reconciliations, and reports (e2e)', () => {
   });
 
   afterAll(async () => {
+    // app.close() runs DatabaseModule's onModuleDestroy, which ends this same
+    // pool (overridden as PG_POOL) -- ending it again here would throw.
     await app.close();
-    await pool.end();
   });
 
   describe('Products CRUD', () => {

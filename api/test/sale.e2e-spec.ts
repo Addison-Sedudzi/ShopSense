@@ -78,8 +78,10 @@ describe('Sale endpoint (e2e)', () => {
   });
 
   afterAll(async () => {
+    // app.close() runs DatabaseModule's onModuleDestroy, which now ends the
+    // pool itself (the same pool instance, since it's overridden as PG_POOL) --
+    // ending it again here would throw.
     await app.close();
-    await pool.end();
   });
 
   function asOwnerA() {

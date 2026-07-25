@@ -1,5 +1,7 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AllExceptionsFilter } from './common/all-exceptions.filter';
+import type { Env } from './config/env.schema';
 
 /**
  * Everything main.ts's bootstrap() applies to a real running app, beyond just
@@ -14,4 +16,11 @@ export function configureApp(app: INestApplication): void {
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
   );
   app.useGlobalFilters(new AllExceptionsFilter());
+
+  const config = app.get(ConfigService<Env>);
+  const corsOrigin = config.get('CORS_ORIGIN', { infer: true }) ?? 'http://localhost:5173';
+  app.enableCors({
+    origin: corsOrigin.split(',').map((origin) => origin.trim()),
+    credentials: true,
+  });
 }

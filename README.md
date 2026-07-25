@@ -39,3 +39,19 @@ import type { Product } from '@shopsense/shared';
 
 Run `npm run build:shared` (or `npm run dev -w shared` to watch) after changing
 types in `shared/src`, so consumers pick up the compiled output.
+
+## Deploying the API
+
+Build context is the repo root (the api workspace depends on the shared
+workspace as a sibling, not a published package):
+
+```bash
+docker build -f Dockerfile -t shopsense-api .
+docker run -p 3000:3000 --env-file api/.env shopsense-api
+```
+
+Required environment variables are validated at startup (see
+`api/src/config/env.schema.ts`) — a missing or malformed one fails
+immediately with a clear message rather than surfacing later mid-request.
+See `api/.env.example` for the full list, including `CORS_ORIGIN` (the
+frontend's origin(s), comma-separated).
