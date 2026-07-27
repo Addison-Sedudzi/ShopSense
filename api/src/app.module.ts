@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { validateEnv } from './config/env.schema';
 import { DatabaseModule } from './database/database.module';
 import { IntelligenceModule } from './modules/intelligence/intelligence.module';
+import { MeModule } from './modules/me/me.module';
 import { ProductsModule } from './modules/products/products.module';
 import { ReconciliationsModule } from './modules/reconciliations/reconciliations.module';
 import { ReportsModule } from './modules/reports/reports.module';
@@ -19,6 +20,7 @@ import { SalesModule } from './modules/sales/sales.module';
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     DatabaseModule,
     AuthModule,
+    MeModule,
     ProductsModule,
     SalesModule,
     ReconciliationsModule,
