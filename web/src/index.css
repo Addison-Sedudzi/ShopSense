@@ -1,111 +1,90 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import 'tailwindcss';
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+/*
+ * ShopSense design tokens. Tuned for the actual usage conditions: a phone or
+ * low-cost tablet, often outdoors in bright sunlight, often used one-handed
+ * at speed. That drives three concrete choices below: higher-contrast text
+ * than a typical web app, a larger base type size, and a touch-target size
+ * (44px) at the accessibility-recommended minimum rather than a compact
+ * desktop-style control size.
+ */
+@theme {
+  --font-sans: system-ui, 'Segoe UI', Roboto, sans-serif;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Brand: the primary action color (record sale, confirm, submit). */
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-500: #2563eb;
+  --color-brand-600: #1d4ed8;
+  --color-brand-700: #1e40af;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
+  /* Semantic status colors, shared by stock levels, reconciliation variance,
+     and sale/sync state -- one vocabulary across the whole app rather than a
+     different ad hoc color per screen. */
+  --color-success-50: #f0fdf4;
+  --color-success-500: #16a34a;
+  --color-success-600: #15803d;
+
+  --color-warning-50: #fffbeb;
+  --color-warning-500: #d97706;
+  --color-warning-600: #b45309;
+
+  --color-danger-50: #fef2f2;
+  --color-danger-500: #dc2626;
+  --color-danger-600: #b91c1c;
+
+  --color-info-50: #f0f9ff;
+  --color-info-500: #0284c7;
+
+  /* Neutral scale, biased toward higher contrast than a typical indoor-use
+     web app -- ink-900 is near-black rather than a soft gray, since low
+     contrast text disappears in direct sunlight. */
+  --color-ink-900: #0f1115;
+  --color-ink-700: #333844;
+  --color-ink-500: #667085;
+  --color-ink-300: #d0d5dd;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8f9fb;
+  --color-border: #e4e7ec;
+
+  /* Type scale. Base is 18px, not the usual 16px, so body text stays legible
+     at arm's length without the owner needing to bring the phone closer. */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1.125rem;
+  --text-base--line-height: 1.6rem;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 2rem;
+  --text-2xl: 1.875rem;
+  --text-2xl--line-height: 2.25rem;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 2.5rem;
+
+  /* Minimum touch target, per WCAG 2.5.5 / iOS & Android platform guidance
+     -- every tappable control (buttons, list rows, numeric keypad keys)
+     should meet or exceed this, not just icon buttons. */
+  --spacing-touch: 2.75rem;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
   }
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  body {
+    margin: 0;
+    background: var(--color-surface-muted);
+    color: var(--color-ink-900);
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+  #root {
+    min-height: 100svh;
   }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }
