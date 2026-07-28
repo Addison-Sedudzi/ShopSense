@@ -20,6 +20,7 @@ function DateView({ date, isToday, onShowHistory, onBackToToday }: {
 
   return (
     <div>
+      <h1 className="p-4 pb-0 text-2xl font-semibold text-ink-900">Reconciliation</h1>
       <div className="flex items-center justify-between p-4 pb-0">
         {!isToday ? (
           <button type="button" onClick={onBackToToday} className="text-sm text-brand-600 underline">

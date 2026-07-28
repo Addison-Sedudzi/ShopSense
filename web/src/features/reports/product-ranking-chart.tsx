@@ -24,6 +24,7 @@ export function ProductRankingChart({
     <div>
       <div className="flex flex-wrap gap-2">
         <select
+          aria-label="Rank by"
           value={metric}
           onChange={(event) => onMetricChange(event.target.value as ProductRankMetric)}
           className="h-touch rounded-md border border-border bg-surface px-2 text-sm text-ink-900"
@@ -32,6 +33,7 @@ export function ProductRankingChart({
           <option value="quantity">By quantity</option>
         </select>
         <select
+          aria-label="Ranking order"
           value={order}
           onChange={(event) => onOrderChange(event.target.value as ProductRankOrder)}
           className="h-touch rounded-md border border-border bg-surface px-2 text-sm text-ink-900"

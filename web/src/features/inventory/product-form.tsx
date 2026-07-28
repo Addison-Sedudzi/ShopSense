@@ -6,7 +6,7 @@ import type { ProductPatch } from './use-product-mutations';
 import { productFormSchema, type ProductFormValues } from './product-schema';
 
 function fieldClass(hasError: boolean) {
-  return `mt-1 block h-touch w-full rounded-md border px-3 text-base text-ink-900 outline-none focus:border-brand-500 ${
+  return `mt-1 block h-touch w-full rounded-md border px-3 text-base text-ink-900 focus:border-brand-500 focus:outline-2 focus:outline-offset-1 focus:outline-brand-500 ${
     hasError ? 'border-danger-500' : 'border-border'
   }`;
 }

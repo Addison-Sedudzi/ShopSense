@@ -44,6 +44,7 @@ function CartLineRow({ line, dispatch }: { line: CartLine; dispatch: Dispatch<Ca
 
         {line.unitsPerCarton && (
           <select
+            aria-label={`Unit for ${line.productName}`}
             value={line.selectedUnit}
             onChange={(event) =>
               dispatch({ type: 'set-unit', productId: line.productId, unit: event.target.value as 'piece' | 'carton' })

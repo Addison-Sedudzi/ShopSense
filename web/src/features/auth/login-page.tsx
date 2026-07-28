@@ -25,7 +25,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center p-4">
+    <main className="flex min-h-svh items-center justify-center p-4">
       <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-lg border border-border bg-surface p-6">
         <h1 className="text-xl font-semibold text-ink-900">Sign in</h1>
 
@@ -41,7 +41,7 @@ export function LoginPage() {
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="mt-1 block h-touch w-full rounded-md border border-border px-3 text-base text-ink-900 outline-none focus:border-brand-500"
+            className="mt-1 block h-touch w-full rounded-md border border-border px-3 text-base text-ink-900 focus:border-brand-500 focus:outline-2 focus:outline-offset-1 focus:outline-brand-500"
           />
         </label>
 
@@ -53,7 +53,7 @@ export function LoginPage() {
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="mt-1 block h-touch w-full rounded-md border border-border px-3 text-base text-ink-900 outline-none focus:border-brand-500"
+            className="mt-1 block h-touch w-full rounded-md border border-border px-3 text-base text-ink-900 focus:border-brand-500 focus:outline-2 focus:outline-offset-1 focus:outline-brand-500"
           />
         </label>
 
@@ -65,6 +65,6 @@ export function LoginPage() {
           {isSubmitting ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
-    </div>
+    </main>
   );
 }

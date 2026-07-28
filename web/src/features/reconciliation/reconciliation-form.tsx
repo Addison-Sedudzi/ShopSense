@@ -92,7 +92,7 @@ export function ReconciliationForm({ date, onSubmitted }: { date: string; onSubm
               value={countedCash}
               onChange={(event) => setCountedCash(event.target.value)}
               placeholder="0.00"
-              className="mt-1 block h-touch w-full rounded-md border border-border px-3 text-base text-ink-900 outline-none focus:border-brand-500"
+              className="mt-1 block h-touch w-full rounded-md border border-border px-3 text-base text-ink-900 focus:border-brand-500 focus:outline-2 focus:outline-offset-1 focus:outline-brand-500"
             />
           </label>
 

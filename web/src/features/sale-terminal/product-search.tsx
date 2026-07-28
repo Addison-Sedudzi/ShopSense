@@ -46,7 +46,7 @@ export function ProductSearch({
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         onKeyDown={handleKeyDown}
-        className="h-touch w-full rounded-md border border-border bg-surface px-3 text-base text-ink-900 outline-none focus:border-brand-500"
+        className="h-touch w-full rounded-md border border-border bg-surface px-3 text-base text-ink-900 focus:border-brand-500 focus:outline-2 focus:outline-offset-1 focus:outline-brand-500"
       />
 
       <ul className="mt-2 divide-y divide-border rounded-lg border border-border bg-surface">

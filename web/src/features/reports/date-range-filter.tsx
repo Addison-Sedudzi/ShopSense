@@ -26,6 +26,7 @@ export function DateRangeFilter({ range, onChange }: { range: DateRange; onChang
     <div className="flex flex-wrap items-center gap-2">
       <input
         type="date"
+        aria-label="From date"
         value={range.from}
         max={range.to}
         onChange={(event) => onChange({ ...range, from: event.target.value })}
@@ -34,6 +35,7 @@ export function DateRangeFilter({ range, onChange }: { range: DateRange; onChang
       <span className="text-ink-500">to</span>
       <input
         type="date"
+        aria-label="To date"
         value={range.to}
         min={range.from}
         max={isoDate(new Date())}

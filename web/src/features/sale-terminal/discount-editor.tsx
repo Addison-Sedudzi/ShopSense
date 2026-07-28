@@ -29,6 +29,7 @@ export function DiscountEditor({
   return (
     <div className="flex items-center gap-2">
       <select
+        aria-label={`${label} type`}
         value={type}
         onChange={(event) => onChange({ type: event.target.value as DiscountType, value: value || '0' })}
         className="h-9 rounded-md border border-border bg-surface px-2 text-sm text-ink-900"
@@ -39,6 +40,7 @@ export function DiscountEditor({
       <input
         type="text"
         inputMode="decimal"
+        aria-label={`${label} value`}
         placeholder={type === 'percentage' ? '10' : '5.00'}
         value={value}
         onChange={(event) => onChange({ type, value: event.target.value })}

@@ -104,7 +104,7 @@ export function InventoryPage() {
         placeholder="Search by name or code…"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        className="mt-4 h-touch w-full rounded-md border border-border bg-surface px-3 text-base text-ink-900 outline-none focus:border-brand-500"
+        className="mt-4 h-touch w-full rounded-md border border-border bg-surface px-3 text-base text-ink-900 focus:border-brand-500 focus:outline-2 focus:outline-offset-1 focus:outline-brand-500"
       />
 
       {productsQuery.isLoading && <p className="mt-4 text-ink-500">Loading products…</p>}
