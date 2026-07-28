@@ -9,7 +9,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { moneyFromPgNumeric, type ApiResponse } from '@shopsense/shared';
+import { moneyFromPgNumeric, type ApiResponse, type ProductInventoryRow } from '@shopsense/shared';
 import { ApiBearerAuth, ApiNotFoundResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AuthGuard, type AuthenticatedUser } from '../../auth/auth.guard';
 import { CurrentUser } from '../../auth/current-user.decorator';
@@ -31,6 +31,16 @@ export class ProductsController {
   async findAll(@CurrentUser() user: AuthenticatedUser): Promise<ApiResponse<ProductResponse[]>> {
     const rows = await this.productsRepository.findByShop(user.shopId);
     return { success: true, data: rows.map(toProductResponse) };
+  }
+
+  /** Cost price and margin included — see ProductInventoryRow's own comment
+   * for why this is a separate endpoint from the plain product list. */
+  @Get('inventory')
+  async findAllForInventory(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<ApiResponse<ProductInventoryRow[]>> {
+    const rows = await this.productsRepository.findInventoryByShop(user.shopId);
+    return { success: true, data: rows };
   }
 
   @Post()

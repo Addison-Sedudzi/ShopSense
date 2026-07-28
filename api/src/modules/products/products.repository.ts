@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { shopId as toShopId, type Money, type ShopId } from '@shopsense/shared';
+import { shopId as toShopId, type Money, type ProductInventoryRow, type ShopId } from '@shopsense/shared';
 import type { Pool } from 'pg';
 import { moneyParam } from '../../database/money-param';
 import { PG_POOL } from '../../database/database.module';
@@ -99,6 +99,44 @@ export class ProductsRepository {
       [shopId],
     );
     return result.rows.map(toProductRow);
+  }
+
+  /** Cost price, margin, and recent sales velocity, for the inventory
+   * management screens only — see ProductInventoryRow's own comment for why
+   * this is a separate method (and endpoint) from findByShop(). */
+  async findInventoryByShop(shopId: ShopId): Promise<ProductInventoryRow[]> {
+    const result = await this.pool.query<
+      ProductRowDb & { margin: Money; qty_sold_28d: string }
+    >(
+      `select ${SELECT_COLUMNS}, p.selling_price - p.cost_price as margin,
+              coalesce(sold.qty_sold_28d, 0) as qty_sold_28d
+       ${FROM_WITH_STOCK}
+       left join (
+         select product_id, sum(-quantity_delta) as qty_sold_28d
+         from stock_movements
+         where movement_type = 'sale' and created_at >= now() - interval '28 days'
+         group by product_id
+       ) sold on sold.product_id = p.id
+       where p.shop_id = $1 and p.archived_at is null
+       order by p.name`,
+      [shopId],
+    );
+    return result.rows.map((row) => ({
+      id: row.id,
+      categoryId: row.category_id,
+      supplierId: row.supplier_id,
+      name: row.name,
+      sku: row.sku,
+      unit: row.base_unit,
+      unitsPerCarton: row.units_per_carton,
+      costPrice: row.cost_price,
+      sellingPrice: row.selling_price,
+      margin: row.margin,
+      reorderThreshold: row.reorder_threshold,
+      currentStock: Number(row.current_stock),
+      quantitySoldLast28Days: Number(row.qty_sold_28d),
+      archived: row.archived_at !== null,
+    }));
   }
 
   async findById(shopId: ShopId, productId: string): Promise<ProductRow | null> {

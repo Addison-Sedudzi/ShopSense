@@ -9,6 +9,11 @@ export const queryKeys = {
   products: {
     all: ['products'] as const,
     list: () => [...queryKeys.products.all, 'list'] as const,
+    inventory: () => [...queryKeys.products.all, 'inventory'] as const,
+  },
+  stockMovements: {
+    all: ['stock-movements'] as const,
+    byProduct: (productId: string) => [...queryKeys.stockMovements.all, productId] as const,
   },
   me: {
     all: ['me'] as const,
