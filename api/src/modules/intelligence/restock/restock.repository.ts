@@ -74,14 +74,23 @@ export class RestockRecommendationsRepository {
     });
 
     const byId = new Map(candidates.map((c) => [c.productId, c]));
-    return result.recommendations.map((r) => ({
-      productId: r.productId,
-      // Product name is taken from our own data, not echoed back from Claude
-      // — the model only ever supplies the reasoning and the quantity.
-      productName: byId.get(r.productId)?.productName ?? r.productId,
-      suggestedQuantity: r.suggestedQuantity,
-      reason: r.reason,
-    }));
+    return result.recommendations.map((r) => {
+      const candidate = byId.get(r.productId);
+      return {
+        productId: r.productId,
+        // Product name and every figure below are taken from our own data,
+        // not echoed back from Claude — the model only ever supplies the
+        // suggested quantity and the reasoning text.
+        productName: candidate?.productName ?? r.productId,
+        suggestedQuantity: r.suggestedQuantity,
+        reason: r.reason,
+        currentStock: candidate?.currentStock ?? 0,
+        reorderThreshold: candidate?.reorderThreshold ?? 0,
+        quantitySoldLast4Weeks: candidate?.quantitySoldLast4Weeks ?? 0,
+        supplierName: candidate?.supplierName ?? null,
+        supplierLeadTimeDays: candidate?.supplierLeadTimeDays ?? null,
+      };
+    });
   }
 
   private async fetchCandidates(shopId: ShopId): Promise<RestockCandidate[]> {

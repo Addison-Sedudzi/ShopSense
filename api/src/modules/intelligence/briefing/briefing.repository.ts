@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import type { Money, ShopId } from '@shopsense/shared';
+import { formatGHS, type Money, type ShopId, type VarianceCause } from '@shopsense/shared';
 import type { Pool } from 'pg';
 import { PG_POOL } from '../../../database/database.module';
 import { ClaudeService } from '../claude.service';
@@ -38,7 +38,7 @@ export class DailyBriefingRepository {
       const result = await this.claude.structuredComplete({
         schema: BriefingSummarySchema,
         system: SYSTEM_PROMPT,
-        prompt: `Facts for ${facts.businessDate}:\n${JSON.stringify(facts, null, 2)}`,
+        prompt: `Facts for ${facts.businessDate}:\n${JSON.stringify(this.factsForPrompt(facts), null, 2)}`,
       });
       summary = result.summary;
     } catch (err) {
@@ -89,7 +89,7 @@ export class DailyBriefingRepository {
       [shopId],
     );
 
-    const reconciliationResult = await this.pool.query<{ variance: Money; variance_cause: string | null }>(
+    const reconciliationResult = await this.pool.query<{ variance: Money; variance_cause: VarianceCause | null }>(
       `select variance, variance_cause from reconciliations where shop_id = $1 and business_date = $2::date`,
       [shopId, businessDate],
     );
@@ -117,6 +117,25 @@ export class DailyBriefingRepository {
             varianceCause: reconciliationResult.rows[0].variance_cause,
           }
         : { submitted: false, variance: null, varianceCause: null },
+    };
+  }
+
+  /**
+   * Money is minor units (pesewas) as a raw integer -- correct for the API
+   * response, but handed to Claude as plain JSON it reads as whole cedis
+   * (e.g. 3700 pesewas = GHS 37.00, but Claude has no way to know that and
+   * would report "GHS 3,700"). Every Money field gets formatted to a GHS
+   * string before it enters the prompt so the summary can't misstate figures
+   * by 100x.
+   */
+  private factsForPrompt(facts: DailyBriefingFacts) {
+    return {
+      ...facts,
+      totalSales: formatGHS(facts.totalSales),
+      reconciliation: {
+        ...facts.reconciliation,
+        variance: facts.reconciliation.variance !== null ? formatGHS(facts.reconciliation.variance) : null,
+      },
     };
   }
 

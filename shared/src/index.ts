@@ -7,3 +7,5 @@ export * from './types/me';
 export * from './types/sale';
 export * from './types/stock-movement';
 export * from './types/reconciliation';
+export * from './types/report';
+export * from './types/intelligence';

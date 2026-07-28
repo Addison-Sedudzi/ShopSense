@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import type { RestockRecommendation } from '@shopsense/shared';
+
+export type { RestockRecommendation };
 
 export interface RestockCandidate {
   productId: string;
@@ -8,13 +11,6 @@ export interface RestockCandidate {
   quantitySoldLast4Weeks: number;
   supplierName: string | null;
   supplierLeadTimeDays: number | null;
-}
-
-export interface RestockRecommendation {
-  productId: string;
-  productName: string;
-  suggestedQuantity: number;
-  reason: string;
 }
 
 /**

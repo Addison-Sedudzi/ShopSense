@@ -119,6 +119,11 @@ describe('Intelligence endpoints (e2e)', () => {
           productName: 'Low Stock Widget', // from our DB, never echoed by the mock
           suggestedQuantity: 20,
           reason: 'Low stock, steady demand',
+          currentStock: 2,
+          reorderThreshold: 10,
+          quantitySoldLast4Weeks: 0,
+          supplierName: null,
+          supplierLeadTimeDays: null,
         },
       ]);
       expect(structuredComplete).toHaveBeenCalledTimes(1);
