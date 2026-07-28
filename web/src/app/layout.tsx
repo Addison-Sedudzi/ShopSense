@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { SyncStatusBar } from './sync-status-bar';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Sell' },
@@ -11,6 +12,7 @@ const NAV_ITEMS = [
 export function AppLayout() {
   return (
     <div className="flex min-h-svh flex-col">
+      <SyncStatusBar />
       <main className="flex-1 pb-[calc(var(--spacing-touch)+1rem)]">
         <Outlet />
       </main>

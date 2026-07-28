@@ -1,34 +1,26 @@
 import type { SaleRow } from '@shopsense/shared';
 import { useReducer, useState } from 'react';
-import type { ApiError } from '@/lib/api-error';
+import { useSyncQueue } from '@/app/sync-context';
 import { CartPanel } from './cart-panel';
 import { cartReducer } from './cart-reducer';
+import { cartTotals } from './cart-math';
 import { emptyCart } from './cart-types';
+import { QUEUED_SALE_SCHEMA_VERSION, type QueuedSale } from './offline-sale-types';
+import { putQueuedSale } from '@/lib/offline-db';
+import { PendingReceiptView } from './pending-receipt-view';
 import { ProductSearch } from './product-search';
 import { ReceiptView } from './receipt-view';
+import { attemptSync } from './sync-engine';
 import { useProducts } from './use-products';
-import { useRecordSale } from './use-record-sale';
-
-function describeError(error: unknown): string {
-  const apiError = error as ApiError;
-  switch (apiError.kind) {
-    case 'network':
-      return 'Network error — check your connection and try again.';
-    case 'unauthorized':
-      return 'Your session expired. Please sign in again.';
-    case 'http':
-      return apiError.message;
-    case 'unexpected':
-      return apiError.message;
-  }
-}
 
 export function SaleTerminalPage() {
   const [cart, dispatch] = useReducer(cartReducer, emptyCart);
   const productsQuery = useProducts();
-  const recordSale = useRecordSale();
+  const { refresh: refreshQueue } = useSyncQueue();
   const [completedSale, setCompletedSale] = useState<SaleRow | null>(null);
+  const [pendingSale, setPendingSale] = useState<QueuedSale | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (completedSale) {
     return (
@@ -42,31 +34,71 @@ export function SaleTerminalPage() {
     );
   }
 
+  if (pendingSale) {
+    return (
+      <PendingReceiptView
+        queuedSale={pendingSale}
+        onNewSale={() => {
+          setPendingSale(null);
+          dispatch({ type: 'clear' });
+        }}
+      />
+    );
+  }
+
   // The cart total shown while building a sale (CartPanel, via cart-math.ts)
-  // is deliberately optimistic — it's just arithmetic on locally-held prices,
-  // safe to show instantly because nothing has been committed yet. Checkout
-  // itself is NOT optimistic: completedSale is only ever set from the
-  // server's actual response, never assumed from the cart. A price could
-  // have changed, a discount could resolve slightly differently, or another
-  // device could have sold the last unit between building the cart and
-  // tapping "Complete sale" — the receipt has to show what the server
-  // actually recorded, not what the client predicted it would.
+  // is deliberately optimistic — it's just arithmetic on locally-held
+  // prices, safe to show instantly because nothing has been committed yet.
+  //
+  // Checkout itself always writes to IndexedDB first (durable even if the
+  // tab closes immediately after), then attempts an immediate sync. Three
+  // outcomes:
+  //   - synced:  the server confirmed it right now — show the real receipt.
+  //   - pending: offline, or the request didn't reach the server — show the
+  //              queued/pending view; SyncProvider retries automatically
+  //              once connectivity returns.
+  //   - failed:  the server actively rejected it (e.g. insufficient stock)
+  //              — surfaced as an error on this screen, cart left intact,
+  //              so the cashier can fix it and try again immediately,
+  //              rather than only finding out later in Settings.
   async function handleCheckout() {
     setCheckoutError(null);
+    setIsSubmitting(true);
     try {
-      const sale = await recordSale.mutateAsync({
-        idempotencyKey: crypto.randomUUID(),
-        items: cart.lines.map((line) => ({
-          productId: line.productId,
-          quantity: line.quantity,
-          unit: line.selectedUnit,
-          ...(line.discount ? { discount: line.discount } : {}),
-        })),
-        ...(cart.saleDiscount ? { saleDiscount: cart.saleDiscount } : {}),
-      });
-      setCompletedSale(sale);
-    } catch (error) {
-      setCheckoutError(describeError(error));
+      const totals = cartTotals(cart);
+      const queued: QueuedSale = {
+        id: crypto.randomUUID(),
+        schemaVersion: QUEUED_SALE_SCHEMA_VERSION,
+        request: {
+          idempotencyKey: crypto.randomUUID(),
+          items: cart.lines.map((line) => ({
+            productId: line.productId,
+            quantity: line.quantity,
+            unit: line.selectedUnit,
+            ...(line.discount ? { discount: line.discount } : {}),
+          })),
+          ...(cart.saleDiscount ? { saleDiscount: cart.saleDiscount } : {}),
+        },
+        summary: { itemCount: cart.lines.length, estimatedGrandTotal: totals.grandTotal },
+        createdAt: new Date().toISOString(),
+        sync: { status: 'pending' },
+      };
+
+      await putQueuedSale(queued);
+      await refreshQueue();
+
+      const result = await attemptSync(queued);
+      await refreshQueue();
+
+      if (result.sync.status === 'synced') {
+        setCompletedSale(result.sync.sale);
+      } else if (result.sync.status === 'failed') {
+        setCheckoutError(result.sync.error);
+      } else {
+        setPendingSale(result);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -92,11 +124,11 @@ export function SaleTerminalPage() {
 
       <button
         type="button"
-        disabled={cart.lines.length === 0 || recordSale.isPending}
+        disabled={cart.lines.length === 0 || isSubmitting}
         onClick={() => void handleCheckout()}
         className="mt-4 h-touch w-full rounded-md bg-brand-600 text-base font-medium text-white disabled:opacity-50"
       >
-        {recordSale.isPending ? 'Completing sale…' : 'Complete sale'}
+        {isSubmitting ? 'Completing sale…' : 'Complete sale'}
       </button>
     </div>
   );
