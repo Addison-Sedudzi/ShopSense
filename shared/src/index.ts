@@ -6,3 +6,4 @@ export * from './types/shop';
 export * from './types/me';
 export * from './types/sale';
 export * from './types/stock-movement';
+export * from './types/reconciliation';

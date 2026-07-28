@@ -18,4 +18,10 @@ export const queryKeys = {
   me: {
     all: ['me'] as const,
   },
+  reconciliations: {
+    all: ['reconciliations'] as const,
+    list: () => [...queryKeys.reconciliations.all, 'list'] as const,
+    byDate: (date: string) => [...queryKeys.reconciliations.all, 'date', date] as const,
+    expectedCash: (date: string) => [...queryKeys.reconciliations.all, 'expected-cash', date] as const,
+  },
 } as const;
